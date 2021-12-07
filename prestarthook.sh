@@ -21,21 +21,23 @@ else
     exit 1
 fi
 
-curl 'http://acmeair.apps-crc.testing/auth/login' -H 'Content-Type: application/x-www-form-urlencoded' --data-raw 'login=uid0%40email.com&password=password' --cookie-jar cookiefile
+cookie=$(curl 'http://acmeair.apps-crc.testing/auth/login' -H 'Content-Type: application/x-www-form-urlencoded' --data-raw 'login=uid0%40email.com&password=password' --silent --cookie-jar -)
 
 while [ $continuecheck -ne 0 ]
 do
     if [ $1 == "customer" ];
     then
-        HTTP_CODE=$(curl --write-out "%{http_code}\n" -H "$contenttype" "$endpoint" --output /dev/null --silent --cookie cookiefile)
+        HTTP_CODE=$(curl --write-out "%{http_code}\n" -H "$contenttype" "$endpoint" --output /dev/null --silent --cookie <(echo "$cookie"))
     elif [ $1 == "flight" ];
     then
         HTTP_CODE=$(curl --write-out "%{http_code}\n" -H "$contenttype" --data "$data" "$endpoint" --output /dev/null --silent)
     elif [ $1 == "booking" ];
     then
-        HTTP_CODE=$(curl --write-out "%{http_code}\n" -H "$contenttype" "$endpoint" --output /dev/null --silent --cookie cookiefile)
+        HTTP_CODE=$(curl --write-out "%{http_code}\n" -H "$contenttype" "$endpoint" --output /dev/null --silent --cookie <(echo "$cookie"))
     fi    
     
+    echo $HTTP_CODE
+
     if [ $HTTP_CODE -eq 200 ];
     then
         continuecheck=$((continuecheck-1))
@@ -44,6 +46,3 @@ do
 done
 
 exit 0
-
-
-
